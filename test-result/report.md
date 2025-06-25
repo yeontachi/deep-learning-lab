@@ -8,7 +8,20 @@
  - **Optimizer** : Adam(Learning rate = 0.001)
  - **활성화 함수** : ReLU
  - **정규화 기법** : 없음
+ - **손실 함수** : CrossEntropyLoss(다중 클래스 분류에서 일반적으로 사용)
  - **평가 지표** : CrossEntropyLoss, Accuracy, Confusion Matrix
+
+### 모델 구조 
+
+| Layer   | Input → Output Shape                | 설명                        |
+| ------- | ----------------------------------- | ------------------------- |
+| `conv1` | `[B, 1, 28, 28] → [B, 32, 28, 28]`  | 3x3 커널, 32채널              |
+| `pool1` | `[B, 32, 28, 28] → [B, 32, 14, 14]` | 2x2 MaxPooling            |
+| `conv2` | `[B, 32, 14, 14] → [B, 64, 14, 14]` | 3x3 커널, 64채널              |
+| `pool2` | `[B, 64, 14, 14] → [B, 64, 7, 7]`   | 2x2 MaxPooling            |
+| `fc1`   | `64*7*7 → 128`                      | Flatten 후 Fully Connected |
+| `fc2`   | `128 → 10`                          | 10개의 클래스 출력               |
+
 
 ## 최종 결과
  - **최종 테스트 정확도(Accuracy)** : 99.03%
@@ -16,9 +29,9 @@
 
  모델은 전체적으로 우수한 성능을 보였으나, **혼동 행렬(Confusion Matrix)**를 분석해보면, 일부 숫자 간에 구체적인 혼동 경향이 존재함
 
- ![Alt text](/test-result/mnist-cnn-base-test1.png)
+ ![Alt text](/test-result/images/mnist-cnn-base-test1.png)
 
- ![Alt text](/test-result/mnist-cnn-base-test2.png)
+ ![Alt text](/test-result/images/mnist-cnn-base-test2.png)
 
 ### 테스트 정확도 변동에 대한 해석
  이번 실험에서는 동일한 CNN 구조로 두 번의 학습을 진행한 결과, 테스트 정확도는 각각 98.85%, **99.03%**로 0.1%~0.2% 수준의 오차 범위 내에서 변동이 발생했다.
@@ -33,6 +46,8 @@
 
 
 ### 클래스별 혼동 분석
+
+![Alt text](/test-result/images/Mnist_CNN_Test1.png)
 
 | 실제 숫자 (True) | 혼동된 숫자 (Predicted) | 혼동 원인                      |
 | ------------ | ------------------ | -------------------------- |

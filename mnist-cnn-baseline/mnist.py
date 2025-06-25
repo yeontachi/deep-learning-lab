@@ -5,12 +5,12 @@ from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 
 # 1. 디바이스 설정
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # GPU있다면 CUDA사용, 그렇지 않으면 CPU로 학습
 print("Using device:", DEVICE)
 
 # 2. 하이퍼파라미터
-BATCH_SIZE = 32
-EPOCHS = 10
+BATCH_SIZE = 32 # 한번에 학습할 데이터의 개수
+EPOCHS = 10     # 전체 데이터셋을 10번 반복 학습
 
 # 3. 데이터셋 불러오기
 transform = transforms.ToTensor()
@@ -18,7 +18,7 @@ transform = transforms.ToTensor()
 train_dataset = datasets.MNIST(root="../data/MNIST", train=True, download=True, transform=transform)
 test_dataset = datasets.MNIST(root="../data/MNIST", train=False, download=True, transform=transform)
 
-train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True) #매 epoch마다 데이터 순서를 무작위로 바꿈(shuffle=True)
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
 # 4. CNN 모델 정의
@@ -49,7 +49,9 @@ criterion = nn.CrossEntropyLoss()
 
 # 6. 학습 함수
 def train(model, train_loader, optimizer, log_interval):
-    model.train()
+    model.train() #모델을 train() 모드로 설정
+    
+    #매 batch마다 forward, loss 계산, backward, optimizer 업데이트 수행
     for batch_idx, (image, label) in enumerate(train_loader):
         image, label = image.to(DEVICE), label.to(DEVICE)
         optimizer.zero_grad()
@@ -58,17 +60,17 @@ def train(model, train_loader, optimizer, log_interval):
         loss.backward()
         optimizer.step()
 
-        if batch_idx % log_interval == 0:
+        if batch_idx % log_interval == 0: # log_interval마다 로그 출력
             print("Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}".format(
                 epoch, batch_idx * len(image), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
 
 # 7. 평가 함수
 def evaluate(model, test_loader):
-    model.eval()
+    model.eval() # 모델을 eval() 모드로 설정
     test_loss = 0
     correct = 0
-    with torch.no_grad():
+    with torch.no_grad(): # no_grad()를 통해 gradient 계산 안함 -> 메모리 및 속도 최적화
         for image, label in test_loader:
             image, label = image.to(DEVICE), label.to(DEVICE)
             output = model(image)
@@ -81,12 +83,12 @@ def evaluate(model, test_loader):
     return test_loss, accuracy
 
 # 8. 학습 루프 실행
-for epoch in range(1, EPOCHS + 1):
-    train(model, train_loader, optimizer, log_interval=200)
-    test_loss, test_accuracy = evaluate(model, test_loader)
+for epoch in range(1, EPOCHS + 1): # Epoch 수만큼 학습 및 평가 반복
+    train(model, train_loader, optimizer, log_interval=200) #train()을 통해 로그 출력 
+    test_loss, test_accuracy = evaluate(model, test_loader) #evaluate()를 통해 테스트 데이터셋에 대한 loss와 accuracy 계산
     print(f"\n[EPOCH {epoch}] Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.2f}%\n")
 
-# 9. 최종 평가
+# 9. 최종 평가(최종 정확도 및 손실 출력)
 final_test_loss, final_test_accuracy = evaluate(model, test_loader)
 
 print("Final Test Loss: {:.4f}".format(final_test_loss))
