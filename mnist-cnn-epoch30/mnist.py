@@ -10,7 +10,7 @@ print("Using device:", DEVICE)
 
 # 2. 하이퍼파라미터
 BATCH_SIZE = 32 # 한번에 학습할 데이터의 개수
-EPOCHS = 100     # 전체 데이터셋을 10번 반복 학습
+EPOCHS = 30     # 전체 데이터셋을 10번 반복 학습
 
 # 3. 데이터셋 불러오기
 transform = transforms.ToTensor()
