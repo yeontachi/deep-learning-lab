@@ -1,3 +1,5 @@
+# MNIST CNN EPOCH 30 Add Dropout Layer
+
 ## 실험 목적
 이번 실험의 목적은 CNN 모델에 Dropout을 적용함으로써 과적합(Overfitting)을 방지하고 일반화 성능을 향상시킬 수 있는지 확인하는 것이다. 기존 모델은 Dropout 없이 훈련되었고, 이후 Dropout(0.5확률)을 적용한 모델로 동일한 학습 조건에서 성능을 비교하였다.
 
