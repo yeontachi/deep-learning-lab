@@ -12,6 +12,8 @@
  - **평가 지표** : CrossEntropyLoss, Accuracy, Confusion Matrix
  - **변경** : kernel_size == 3 -> kernel_size == 5 (padding == 1 -> padding == 2)
 
+ ![Alt text](/test-result-kernel_size5/images/kernel-padding-op.png)
+ 
 ## 실험 목적
  커널 크기를 3에서 5로 늘리면, 더 넓은 영역을 봐서 작은 특징들을 놓칠 수 있다고 판단하여, 정확도가 떨어지고, 손실이 커질 것이라고 예측
 
