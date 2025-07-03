@@ -2,15 +2,23 @@
 
 ## 모델 구조(CNN)
 입력: [B, 3, 32, 32]
+
  └ Conv2d(3, 8, kernel=3, padding=1) → ReLU → MaxPool2d(2)
    출력: [B, 8, 16, 16]
+
  └ Conv2d(8, 16, kernel=3, padding=1) → ReLU → MaxPool2d(2)
    출력: [B, 16, 8, 8]
+
  └ Flatten → [B, 1024]
+
  └ Linear(1024 → 64) → ReLU
+
  └ Linear(64 → 32) → ReLU
+
  └ Linear(32 → 10)
+
  └ LogSoftmax(dim=1)
+ 
 출력: [B, 10] → 클래스별 로그 확률
 
 | 층                             | 역할                              |
