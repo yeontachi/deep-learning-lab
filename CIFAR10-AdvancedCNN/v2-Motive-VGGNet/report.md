@@ -143,8 +143,11 @@ Case A : Motive VGGNet
  - (Conv-Conv-Conv-Pool)x2 - fc1 - fc2 - fc3
 
 Case B : Add Dropout
+
 Case C : Dropout -> BatchNorm
+
 Case D : EarlyStopping + fc layer In&Out features change 128, 32 > 1024, 128 (fc1, fc2)
+
 Case E : Data Augmentation(Random Crop + RandomHorizontalFlip)
 
 ![Alt text](/CIFAR10-AdvancedCNN/v2-Motive-VGGNet/images/Trend-Motive_VGGNet.png)
