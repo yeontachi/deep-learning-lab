@@ -108,7 +108,7 @@
 | 30          |     0.0436 |         98.51 |     0.9117 |        81.53 |
 | **Average** | **0.2038** |     **92.89** | **0.7730** |    **80.64** |
 
-## EarlyStopping + fc layer In&Out featires change
+## EarlyStopping + fc layer In&Out features change
 128, 32 > 1024, 128 (fc1, fc2)
 
 | Epoch       | Train Loss | Train Acc (%) | Test Loss  | Test Acc (%) |
@@ -138,4 +138,13 @@
 |10     | 0.2082     | 92.86              | 0.4234    | 87.46              |
 |11     | 0.1960     | 93.30              | 0.4279    | 87.52              |
 
+## 전체 성능 비교
+Case A : Motive VGGNet
+ - (Conv-Conv-Conv-Pool)x2 - fc1 - fc2 - fc3
 
+Case B : Add Dropout
+Case C : Dropout -> BatchNorm
+Case D : EarlyStopping + fc layer In&Out features change 128, 32 > 1024, 128 (fc1, fc2)
+Case E : Data Augmentation(Random Crop + RandomHorizontalFlip)
+
+![Alt text](/CIFAR10-AdvancedCNN/v2-Motive-VGGNet/images/Trend-Motive_VGGNet.png)
