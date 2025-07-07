@@ -138,6 +138,18 @@
 |10     | 0.2082     | 92.86              | 0.4234    | 87.46              |
 |11     | 0.1960     | 93.30              | 0.4279    | 87.52              |
 
+## Data Augmentation (Add ColorJitter birgtness=0.5, saturation=0.5)
+| Epoch | Train Loss | Train Accuracy (%) | Test Loss | Test Accuracy (%) |
+|-------|------------|---------------------|-----------|--------------------|
+| 1     | 0.8982     | 68.25               | 0.6025    | 78.16              |
+| 2     | 0.5132     | 82.14               | 0.5061    | 82.91              |
+| 3     | 0.3626     | 87.59               | 0.4536    | 85.22              |
+| 4     | 0.2759     | 90.56               | 0.4944    | 85.52              |
+| 5     | 0.2262     | 92.30               | 0.4634    | 86.20              |
+| 6     | 0.1973     | 93.28               | 0.4815    | 86.23              |
+| 7     | 0.1778     | 94.02               | 0.4750    | 87.20              |
+| 8     | 0.1613     | 94.58               | 0.4943    | 86.98              |
+
 ## 전체 성능 비교
 Case A : Motive VGGNet
  - (Conv-Conv-Conv-Pool)x2 - fc1 - fc2 - fc3
@@ -150,4 +162,6 @@ Case D : EarlyStopping + fc layer In&Out features change 128, 32 > 1024, 128 (fc
 
 Case E : Data Augmentation(Random Crop + RandomHorizontalFlip)
 
-![Alt text](/CIFAR10-AdvancedCNN/v2-Motive-VGGNet/images/Trend-Motive_VGGNet.png)
+Case F : Data Augmentation(add colorjitter brightness=0.5, saturation=0.5)
+
+![Alt text](/CIFAR10-AdvancedCNN/v2-Motive-VGGNet/images/Motive-VGGNet-Trend2.png)
