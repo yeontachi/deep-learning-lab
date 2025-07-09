@@ -160,7 +160,7 @@ Case C : Dropout -> BatchNorm
 
 Case D : EarlyStopping + fc layer In&Out features change 128, 32 > 1024, 128 (fc1, fc2)
 
-Case E : Data Augmentation(Random Crop + RandomHorizontalFlip)
+Case E : Data Augmentation(Random Crop + RandomHorizontalFlip) best Performance
 
 Case F : Data Augmentation(add colorjitter brightness=0.5, saturation=0.5)
 
