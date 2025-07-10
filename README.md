@@ -1,20 +1,11 @@
-# 🧠 Deep Learning Lab
 
-This repository serves as a personal laboratory for deep learning experimentation, research practice, and hands-on model implementation. It includes a variety of neural network experiments using PyTorch and other open-source tools, focusing on understanding model behavior through architectural variations, dataset manipulations, and training strategies.
+### 🗂️ Examples:
+- `2025-06-30-MNIST` → Experiment using the MNIST dataset
+- `2025-07-03-DataAugment` → Experiment with data augmentation techniques
+- `2025-07-08-MobileNetV2` → Transfer learning with MobileNetV2
+- `2025-07-10-BilliardDetection` → Vision-based object detection practice
 
----
-
-## 🔀 Branch-Based Experiment Tracking
-
-Each branch in this repository represents a distinct deep learning experiment or assignment. This approach keeps the main branch clean while allowing isolated and reproducible experiment management.
-
-### 📁 Branch Naming Convention:
-- `mnist-mlp-baseline`: Basic MLP on MNIST
-- `mnist-cnn-compare`: CNN vs. MLP comparison
-- `data-augmentation-test`: Experimenting with input noise, rotation, etc.
-- `openpose-study`: Open source project analysis
-
-> ✅ To view a specific experiment, switch to the corresponding branch.
+> ✅ Each folder includes all relevant code, results, and documentation for the corresponding experiment.
 
 ---
 
@@ -39,7 +30,7 @@ Each branch in this repository represents a distinct deep learning experiment or
 
 ---
 
-## 🧪 Purpose
+## 🎯 Purpose
 
 This lab is designed to:
 - Deepen understanding of deep learning theory and practice
@@ -56,4 +47,4 @@ This lab is designed to:
 
 ---
 
-Feel free to clone, explore the branches, and contribute insights or improvements!
+Feel free to clone the repo, browse through the dated experiment folders, and learn from the process!
