@@ -1,3 +1,13 @@
+# 🧠 Deep Learning Lab
+
+This repository serves as a personal laboratory for deep learning experimentation, research practice, and hands-on model implementation. It includes a variety of neural network experiments using **PyTorch** and other open-source tools, focusing on understanding model behavior through architectural variations, dataset manipulations, and training strategies.
+
+---
+
+## 🧪 Structure & Navigation
+
+Each experiment is stored in a **timestamped directory** for easy chronological tracking.  
+The directory naming convention is:
 
 ### 🗂️ Examples:
 - `2025-06-30-MNIST` → Experiment using the MNIST dataset
