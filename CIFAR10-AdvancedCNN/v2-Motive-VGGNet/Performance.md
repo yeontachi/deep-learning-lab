@@ -160,3 +160,28 @@ Case E : Data Augmentation(Random Crop + RandomHorizontalFlip) best Performance
 Case F : Data Augmentation(add colorjitter brightness=0.5, saturation=0.5)
 
 ![Alt text](/CIFAR10-AdvancedCNN/v2-Motive-VGGNet/images/Motive-VGGNet-Trend2.png)
+
+
+
+## edit First Structure Conv-Conv-Conv > Conv-Conv
+
+| Epoch | Train Loss | Train Accuracy (%) | Test Loss | Test Accuracy (%) |
+| ----- | ---------- | ------------------ | --------- | ----------------- |
+| 1     | 1.0241     | 63.66              | 0.7001    | 75.86             |
+| 2     | 0.6597     | 76.91              | 0.5578    | 80.77             |
+| 3     | 0.5237     | 81.86              | 0.5065    | 82.83             |
+| 4     | 0.4313     | 85.01              | 0.4655    | 84.03             |
+| 5     | 0.3683     | 87.27              | 0.4472    | 85.17             |
+| 6     | 0.3168     | 89.07              | 0.4458    | 85.63             |
+| 7     | 0.2829     | 90.28              | 0.4450    | 85.83             |
+| 8     | 0.2555     | 91.17              | 0.4511    | 86.37             |
+| 9     | 0.2351     | 91.95              | 0.4417    | 86.68             |
+| 10    | 0.2195     | 92.53              | 0.4269    | 87.75             |
+| 11    | 0.2078     | 92.93              | 0.4461    | 87.43             |
+| 12    | 0.1973     | 93.31              | 0.4665    | 87.12             |
+| 13    | 0.1863     | 93.62              | 0.4645    | 87.42             |
+| 14    | 0.1782     | 93.88              | 0.4820    | 87.15             |
+| 15    | 0.1713     | 94.16              | 0.4481    | 88.01             |
+
+Final model Performance
+| 15    | 0.1713     | 94.16              | 0.4481    | 88.01             |
