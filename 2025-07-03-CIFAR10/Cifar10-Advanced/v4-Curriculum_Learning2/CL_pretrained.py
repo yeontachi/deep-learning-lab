@@ -1,25 +1,24 @@
-# Random Confidence Score
+# Pretrained CIFAR-10 Model with Curriculum Learning
 from tqdm import tqdm
 import torch
 import torch.nn as nn
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, Subset
 import numpy as np
-import random
 
 # 1. 디바이스 설정
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using device:", DEVICE)
 
 BATCH_SIZE = 32
-STAGE_EPOCHS = 10  # 각 단계별 학습 epoch 수
-TOTAL_EPOCHS = 30
+STAGE_EPOCHS = 10
+FINE_TUNE_EPOCHS = 5
 
 # CIFAR-10 정규화 기준
 mean = (0.4914, 0.4822, 0.4465)
 std = (0.2023, 0.1994, 0.2010)
 
-# Stage별 transform 정의
+# Transform 정의
 original_transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(mean, std)
@@ -35,36 +34,83 @@ test_transform = transforms.Compose([
     transforms.Normalize(mean, std)
 ])
 
-# 원본 데이터 (confidence 산정용)
-raw_dataset = datasets.CIFAR10(root="./data/", train=True, download=True, transform=transforms.ToTensor())
+# Step 1: Pretrain 간단 모델로 confidence 추정
+raw_dataset = datasets.CIFAR10(root="./data", train=True, download=True, transform=transforms.ToTensor())
+pre_model = nn.Sequential(
+    nn.Conv2d(3, 32, 3, padding=1),
+    nn.BatchNorm2d(32),
+    nn.ReLU(),
+    nn.Conv2d(32, 32, 3, padding=1),
+    nn.BatchNorm2d(32),
+    nn.ReLU(),
+    nn.MaxPool2d(2, 2),
 
-# [예시용] confidence 점수를 임의 생성 (실제로는 pretrained model로 예측하여 계산)
-confidence_scores = np.linspace(1.0, 0.0, len(raw_dataset))  # 0~1 선형 분포
-sorted_indices = np.argsort(-confidence_scores)  # 높은 confidence 먼저
+    nn.Conv2d(32, 64, 3, padding=1),
+    nn.BatchNorm2d(64),
+    nn.ReLU(),
+    nn.Conv2d(64, 64, 3, padding=1),
+    nn.BatchNorm2d(64),
+    nn.ReLU(),
+    nn.Conv2d(64, 64, 3, padding=1),
+    nn.BatchNorm2d(64),
+    nn.ReLU(),
+    nn.MaxPool2d(2, 2),
 
-# Stage별 index 나누기
+    nn.Flatten(),
+    nn.Linear(8 * 8 * 64, 1024),
+    nn.BatchNorm1d(1024),
+    nn.ReLU(),
+    nn.Linear(1024, 128),
+    nn.BatchNorm1d(128),
+    nn.ReLU(),
+    nn.Linear(128, 10),
+    nn.LogSoftmax(dim=1)
+).to(DEVICE)
+
+
+optimizer = torch.optim.Adam(pre_model.parameters(), lr=0.001)
+criterion = nn.CrossEntropyLoss()
+pre_loader = DataLoader(raw_dataset, batch_size=128, shuffle=True)
+
+pre_model.train()
+for images, labels in pre_loader:
+    images, labels = images.to(DEVICE), labels.to(DEVICE)
+    optimizer.zero_grad()
+    outputs = pre_model(images)
+    loss = criterion(outputs, labels)
+    loss.backward()
+    optimizer.step()
+    break  # 1 배치만 학습
+
+# Step 2: Confidence 점수 계산
+pre_model.eval()
+confidence_scores = []
+with torch.no_grad():
+    for image, _ in raw_dataset:
+        image = image.unsqueeze(0).to(DEVICE)
+        prob = torch.softmax(pre_model(image), dim=1)
+        confidence_scores.append(torch.max(prob).item())
+
+confidence_scores = np.array(confidence_scores)
+sorted_indices = np.argsort(-confidence_scores)
+
+# Step 3: 데이터 분할
 num_total = len(sorted_indices)
-stage1_indices = sorted_indices[:int(0.3 * num_total)]
-stage2_indices = sorted_indices[int(0.3 * num_total):int(0.7 * num_total)]
-stage3_indices = sorted_indices[int(0.7 * num_total):]
+stage1_idx = sorted_indices[:int(0.3 * num_total)]
+stage2_idx = sorted_indices[int(0.3 * num_total):int(0.7 * num_total)]
+stage3_idx = sorted_indices[int(0.7 * num_total):]
 
-# Stage별 dataset 정의
-original_dataset = datasets.CIFAR10(root="./data/", train=True, download=True, transform=original_transform)
-augmented_dataset = datasets.CIFAR10(root="./data/", train=True, download=True, transform=augmented_transform)
+original_dataset = datasets.CIFAR10(root="./data", train=True, download=True, transform=original_transform)
+augmented_dataset = datasets.CIFAR10(root="./data", train=True, download=True, transform=augmented_transform)
 
-stage1_dataset = Subset(original_dataset, stage1_indices)
-stage2_dataset = Subset(augmented_dataset, stage2_indices)
-stage3_dataset = Subset(augmented_dataset, stage3_indices)
+stage1_loader = DataLoader(Subset(original_dataset, stage1_idx), batch_size=BATCH_SIZE, shuffle=True)
+stage2_loader = DataLoader(Subset(augmented_dataset, stage2_idx), batch_size=BATCH_SIZE, shuffle=True)
+stage3_loader = DataLoader(Subset(augmented_dataset, stage3_idx), batch_size=BATCH_SIZE, shuffle=True)
 
-stage1_loader = DataLoader(stage1_dataset, batch_size=BATCH_SIZE, shuffle=True)
-stage2_loader = DataLoader(stage2_dataset, batch_size=BATCH_SIZE, shuffle=True)
-stage3_loader = DataLoader(stage3_dataset, batch_size=BATCH_SIZE, shuffle=True)
-
-# 테스트 데이터
-test_dataset = datasets.CIFAR10(root="./data/", train=False, download=True, transform=test_transform)
+test_dataset = datasets.CIFAR10(root="./data", train=False, download=True, transform=test_transform)
 test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
-# 2. CNN 모델 정의
+# Step 4: CNN 정의
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
@@ -72,16 +118,13 @@ class CNN(nn.Module):
         self.bn1_1 = nn.BatchNorm2d(32)
         self.conv1_2 = nn.Conv2d(32, 32, 3, padding=1)
         self.bn1_2 = nn.BatchNorm2d(32)
-
         self.conv2_1 = nn.Conv2d(32, 64, 3, padding=1)
         self.bn2_1 = nn.BatchNorm2d(64)
         self.conv2_2 = nn.Conv2d(64, 64, 3, padding=1)
         self.bn2_2 = nn.BatchNorm2d(64)
         self.conv2_3 = nn.Conv2d(64, 64, 3, padding=1)
         self.bn2_3 = nn.BatchNorm2d(64)
-
         self.pool = nn.MaxPool2d(2, 2)
-
         self.fc1 = nn.Linear(8 * 8 * 64, 1024)
         self.bn_fc1 = nn.BatchNorm1d(1024)
         self.fc2 = nn.Linear(1024, 128)
@@ -92,38 +135,27 @@ class CNN(nn.Module):
         x = torch.relu(self.bn1_1(self.conv1_1(x)))
         x = torch.relu(self.bn1_2(self.conv1_2(x)))
         x = self.pool(x)
-
         x = torch.relu(self.bn2_1(self.conv2_1(x)))
         x = torch.relu(self.bn2_2(self.conv2_2(x)))
         x = torch.relu(self.bn2_3(self.conv2_3(x)))
         x = self.pool(x)
-
         x = x.view(-1, 8 * 8 * 64)
         x = torch.relu(self.bn_fc1(self.fc1(x)))
         x = torch.relu(self.bn_fc2(self.fc2(x)))
         x = self.fc3(x)
         return torch.log_softmax(x, dim=1)
 
-# 3. Early Stopping 클래스
-class EarlyStopping:
-    def __init__(self, patience=5, min_delta=0.0):
-        self.patience = patience
-        self.min_delta = min_delta
-        self.counter = 0
-        self.best_loss = None
-        self.early_stop = False
-        
-    def __call__(self, val_loss):
-        if self.best_loss is None or val_loss < self.best_loss - self.min_delta:
-            self.best_loss = val_loss
-            self.counter = 0
-        else:
-            self.counter += 1
-            if self.counter >= self.patience:
-                self.early_stop = True
-                print("Early Stopping triggered.")
+# Step 5: 학습 함수
+def train(model, loader, optimizer, criterion):
+    model.train()
+    for image, label in loader:
+        image, label = image.to(DEVICE), label.to(DEVICE)
+        optimizer.zero_grad()
+        output = model(image)
+        loss = criterion(output, label)
+        loss.backward()
+        optimizer.step()
 
-# 4. 학습 및 평가 함수
 def train(model, train_loader, optimizer, epoch):
     model.train()
     running_loss, correct, total = 0.0, 0, 0
