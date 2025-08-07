@@ -7,9 +7,6 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm  
 import os
 
-# -----------------------
-# 1. ResNet Block 정의
-# -----------------------
 class ResNetBlock(nn.Module):
     def __init__(self, in_channels, out_channels, stride=1, downsample=None):
         super(ResNetBlock, self).__init__()
@@ -35,9 +32,6 @@ class ResNetBlock(nn.Module):
         out = self.relu(out)
         return out
 
-# -----------------------
-# 2. ResNet-26 정의
-# -----------------------
 class ResNet26_Teacher(nn.Module):
     def __init__(self, num_classes=10):
         super(ResNet26_Teacher, self).__init__()
@@ -80,9 +74,6 @@ class ResNet26_Teacher(nn.Module):
         out = self.fc(out)
         return out
 
-# -----------------------
-# 3. 학습 함수 (tqdm 추가)
-# -----------------------
 def train(model, loader, criterion, optimizer, device):
     model.train()
     total_loss = 0
@@ -108,9 +99,7 @@ def train(model, loader, criterion, optimizer, device):
 
     return total_loss / total, 100. * correct / total
 
-# -----------------------
-# 4. 테스트 함수 (tqdm 추가)
-# -----------------------
+
 def test(model, loader, criterion, device):
     model.eval()
     total_loss = 0
@@ -134,9 +123,7 @@ def test(model, loader, criterion, device):
 
     return total_loss / total, 100. * correct / total
 
-# -----------------------
-# 5. 실행부 (main)
-# -----------------------
+
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
