@@ -1,4 +1,3 @@
-# Model 
 import math
 import random
 from dataclasses import dataclass
@@ -184,4 +183,109 @@ class ViT(nn.Module):
         cls_out = x[:, 0]                      # cls 토큰
         logits = self.head(cls_out)
         return logits
-  
+
+# data
+
+def get_dataloaders(cfg: Config):
+    # CIFAR-10 통계
+    mean = (0.4914, 0.4822, 0.4465)
+    std  = (0.2470, 0.2435, 0.2616)
+
+    train_tfms = transforms.Compose([
+        transforms.RandomCrop(cfg.image_size, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean, std),
+    ])
+    test_tfms = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean, std),
+    ])
+
+    train_set = datasets.CIFAR10(root="./data", train=True, download=True, transform=train_tfms)
+    test_set  = datasets.CIFAR10(root="./data", train=False, download=True, transform=test_tfms)
+
+    train_loader = DataLoader(train_set, batch_size=cfg.batch_size, shuffle=True,
+                              num_workers=cfg.num_workers, pin_memory=True)
+    test_loader  = DataLoader(test_set, batch_size=cfg.batch_size, shuffle=False,
+                              num_workers=cfg.num_workers, pin_memory=True)
+    return train_loader, test_loader
+
+# Train / Eval
+def train_one_epoch(model, loader, optimizer, device, scaler=None):
+    model.train()
+    total_loss, correct, total = 0.0, 0, 0
+    pbar = tqdm(loader, leave=False)
+    for images, targets in pbar:
+        images, targets = images.to(device, non_blocking=True), targets.to(device, non_blocking=True)
+        optimizer.zero_grad(set_to_none=True)
+
+        if scaler is not None:
+            with torch.cuda.amp.autocast():
+                logits = model(images)
+                loss = F.cross_entropy(logits, targets)
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            logits = model(images)
+            loss = F.cross_entropy(logits, targets)
+            loss.backward()
+            optimizer.step()
+
+        total_loss += loss.item() * images.size(0)
+        pred = logits.argmax(dim=1)
+        correct += (pred == targets).sum().item()
+        total += images.size(0)
+        pbar.set_description(f"train loss {total_loss/total:.4f} acc {correct/total:.4f}")
+    return total_loss / total, correct / total
+
+
+@torch.no_grad()
+def evaluate(model, loader, device):
+    model.eval()
+    total_loss, correct, total = 0.0, 0, 0
+    for images, targets in loader:
+        images, targets = images.to(device, non_blocking=True), targets.to(device, non_blocking=True)
+        logits = model(images)
+        loss = F.cross_entropy(logits, targets)
+        total_loss += loss.item() * images.size(0)
+        pred = logits.argmax(dim=1)
+        correct += (pred == targets).sum().item()
+        total += images.size(0)
+    return total_loss / total, correct / total
+
+
+def main(cfg: Config):
+    set_seed(cfg.seed)
+    train_loader, test_loader = get_dataloaders(cfg)
+
+    model = ViT(cfg).to(cfg.device)
+    print(f"Model params: {count_params(model):,}")
+
+    optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
+    scaler = torch.cuda.amp.GradScaler(enabled=(cfg.device.startswith("cuda")))
+
+    best_acc = 0.0
+    for epoch in range(cfg.epochs):
+        # cosine + warmup
+        lr = cosine_warmup_lr(epoch, cfg.lr, cfg.epochs, cfg.warmup_epochs)
+        for g in optimizer.param_groups:
+            g["lr"] = lr
+
+        train_loss, train_acc = train_one_epoch(model, train_loader, optimizer, cfg.device, scaler)
+        val_loss, val_acc = evaluate(model, test_loader, cfg.device)
+
+        print(f"[Epoch {epoch+1:03d}/{cfg.epochs}] "
+              f"lr {lr:.6f} | train {train_loss:.4f}/{train_acc:.4f} | valid {val_loss:.4f}/{val_acc:.4f}")
+
+        if val_acc > best_acc:
+            best_acc = val_acc
+            torch.save({"model": model.state_dict(), "cfg": cfg.__dict__}, "vit_cifar10_best.pth")
+            print(f"  ↳ Saved best (acc={best_acc:.4f})")
+
+    print(f"Best val acc: {best_acc:.4f}")
+
+
+if __name__ == "__main__":
+    main(CFG)
